@@ -1,0 +1,12 @@
+[package]
+name = "path"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+owo-colors = { version = "4.3.0", default-features = false }
+
+[dependencies.clap]
+version = "4.5.60"
+default-features = false
+features = ["std", "derive", "suggestions", "usage", "help"]
