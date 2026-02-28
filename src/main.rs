@@ -2,7 +2,7 @@ mod args;
 mod strings;
 mod utils;
 
-use std::{ env, fs, io, process::exit };
+use std::{ env, fs, process::exit };
 use clap::Parser;
 use args::Args;
 
@@ -49,7 +49,7 @@ fn main() {
                 let status_str = match fs::metadata(path) {
                     Ok(m) if m.is_dir() => ok_str,
                     Ok(_) => {
-                        result = Err(io::Error::from(io::ErrorKind::NotADirectory));
+                        result = Ok(libc::ENOTDIR);
                         err_str
                     }
                     Err(e) => {

@@ -79,5 +79,9 @@ $ path -QS
 This program does its best to exit with the code that corresponds to your system's standard. See `errno` for Linux-based systems and `net helpmsg` for Windows. <br />
 Exit code 0 always means no errors.
 
+# Changelog
+- 0.1.0: Release.
+- 0.2.0: Fixed a little bug when exiting with a "not a directory" status code.
+
 # TODO
 - Organize with Unix/Windows folders.

@@ -130,7 +130,7 @@ checksum = "d211803b9b6b570f68772237e415a029d5a50c65d382910b879fb19d3271f94d"
 
 [[package]]
 name = "path-cmd"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "libc",
