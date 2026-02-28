@@ -1,51 +1,86 @@
-// Can't define default_value_t otherwise.
-#![allow(unused_parens)]
+mod args;
+mod strings;
+mod utils;
 
-use std::{ env, fs, process::ExitCode };
+use std::{ env, fs, io, process::exit };
 use clap::Parser;
-use owo_colors::OwoColorize;
+use args::Args;
 
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct Args {
-    #[arg(short='a')]
-    a: bool,
-    #[arg(short = 's', long = "style", default_value_t = ("numbers,status".to_owned()))]
-    style: String
-}
-
-const OK_TEXT: &str = "\u{f058}";
-const ERR_TEXT: &str = "\u{f530}";
-const UNKNOWN_TEXT: &str = "\u{f071}";
-
-fn main() -> ExitCode {
+#[cfg(unix)]
+fn main() {
     let args = Args::parse();
 
     // Only print with dev profile.
     #[cfg(debug_assertions)]
     println!("{args:?}");
 
-    let mut status_text = UNKNOWN_TEXT.yellow().to_string();
+    // Please do this instead of using a match.
     let Ok(path_str) = env::var("PATH") else {
         eprintln!("No $PATH variable found.");
-        return ExitCode::FAILURE;
+        exit(libc::EINVAL);
     };
+
+    let mut result = Ok(libc::EXIT_SUCCESS);
+
+    let colorize = if args.no_colors { false } else { args.colors.check_colorize() };
+
     let paths: Vec<&str> = path_str.split(':').collect();
+    let num_padding = paths.len().to_string().len();
+
     for (i, path) in paths.iter().enumerate() {
-        change_status(&mut status_text, fs::exists(path));
-        change_status(
-            &mut status_text,
-            fs::File::open(path)
-                .and_then(|file| file.metadata())
-                .map(|meta| meta.is_dir())
-        );
-        println!("{:>2 }: {} {}", i + 1, path, status_text);
+        let mut output = String::new();
+
+        if args.enumerate {
+            // I wish there was a pad_left function.
+            // I'm forced to use this weird fmt syntax.
+            if args.zero_padding {
+                output.push_str(&format!("{i:0>x$}: ", x = num_padding));
+            } else {
+                output.push_str(&format!("{i: >x$}: ", x = num_padding));
+            }
+        }
+
+        if !args.no_status {            
+            let (ok_str, err_str) = args.status_style
+                .get_status_str(colorize);
+
+            if !ok_str.is_empty() {
+                // I'm actually proud of this statement.
+                let status_str = match fs::metadata(path) {
+                    Ok(m) if m.is_dir() => ok_str,
+                    Ok(_) => {
+                        result = Err(io::Error::from(io::ErrorKind::NotADirectory));
+                        err_str
+                    }
+                    Err(e) => {
+                        result = Err(e);
+                        err_str
+                    }
+                };
+
+                output.push_str(&status_str);
+                output.push(' ');
+            }
+        }
+
+        if args.no_quoting {
+            output.push_str(path);
+        } else {
+            output.push_str(&format!("{path:?}"));
+        }
+
+        println!("{output}");
     }
-    ExitCode::SUCCESS
+
+    exit(result.unwrap_or_else(|e| e.raw_os_error().unwrap_or(1)))
 }
 
-fn change_status<E>(text: &mut String, result: Result<bool, E>) {
-    if let Ok(does) = result {
-        *text = if does { OK_TEXT.green().to_string() } else { ERR_TEXT.red().to_string() };
-    }
+#[cfg(windows)]
+fn main() {
+    compile_error!("Windows is not yet implemented.");
+}
+
+#[cfg(not(any(unix, windows)))]
+fn main() {
+    compile_error!("This program is only valid for POSIX or Windows systems.");
 }

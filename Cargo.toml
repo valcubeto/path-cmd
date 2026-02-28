@@ -1,12 +1,24 @@
 [package]
-name = "path"
+name = "path-cmd"
 version = "0.1.0"
 edition = "2024"
+authors = ["valcubeto@gmail.com"]
+description = "A command to nicely display the directories listed in $PATH."
+categories = []
+keywords = []
+license = "MIT"
+repository = "https://github.com/valcubeto/path-cmd"
+readme = "README.md"
+
+[[bin]]
+name = "path"
+path = "src/main.rs"
 
 [dependencies]
+libc = { version = "0.2.182", default-features = false }
 owo-colors = { version = "4.3.0", default-features = false }
 
 [dependencies.clap]
 version = "4.5.60"
 default-features = false
-features = ["std", "derive", "suggestions", "usage", "help"]
+features = ["std", "derive", "suggestions", "usage", "help", "color"]
