@@ -1,40 +1,62 @@
-use crate::strings;
-use crate::utils::{ green, red };
+use crate::strings::*;
 use clap::{ Parser, ValueEnum };
 
-#[derive(Parser, Debug)]
-#[command(version, about, after_long_help = { strings::AFTER_HELP.trim_matches('\n') })]
-pub struct ParsedArgs {
-    #[arg(long = "color", value_enum, default_value = "auto", alias = "colors", id = "WHEN")]
+#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Parser)]
+#[command(version,
+          about,
+          after_long_help = { AFTER_HELP.trim_matches('\n') })]
+pub struct ProgramFlags {
+    #[arg(long = "color",
+          value_enum,
+          default_value = "auto",
+          alias = "colors",
+          id = "WHEN")]
     pub colorize: WhenColors,
 
     /// Enumerate paths
     #[arg(short, long)]
     pub enumerate: bool,
 
-    /// Pad numbers with zeroes instead of spaces.
+    /// Pad line numbers with zeros
     #[arg(short, long)]
     pub zero_padding: bool,
 
-    #[arg(short, long, value_enum, default_value = "text", id = "STYLE")]
-    pub status_style: StatusStyle,
+    /// Self-explanatory
+    #[arg(short = 'S', long)]
+    pub no_status: bool,
+
+    #[arg(short,
+          long,
+          value_enum,
+          default_value = "text",
+          id = "STYLE")]
+    pub status_style: Option<StatusStyle>,
 
     /// Self-explanatory
     #[arg(short = 'd', long)]
     pub show_description: bool,
 
+    /// Display a label above each column
+    #[arg(short = 'H', long)]
+    pub header: bool,
+
+    /// Display the valid path count below
+    #[arg(short = 'F', long)]
+    pub footer: bool,
+
     /// Specify a format for each path
-    #[arg(
-        long,
-        default_value = strings::DEFAULT_FORMAT,
-        hide_default_value = true
-    )]
+    #[arg(long,
+          default_value = DEFAULT_FORMAT,
+          hide_default_value = true)]
     pub format: String,
+
     // pub hide_invalid_paths
     // pub no_duplicates: bool
 }
 
-#[derive(ValueEnum, Debug, Clone)]
+#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(ValueEnum, Clone, Copy)]
 pub enum StatusStyle {
     None,
     Text,
@@ -42,29 +64,19 @@ pub enum StatusStyle {
     Emoji,
 }
 
-impl StatusStyle {
-    pub fn get_status_str(&self, colorize: WhenColors) -> Option<(String, String)> {
-        match self {
-            StatusStyle::Icons => Some((
-                green(strings::OK_ICON, colorize),
-                red(strings::ERR_ICON, colorize)
-            )),
-            StatusStyle::Text => Some((
-                green(strings::OK_TEXT, colorize),
-                red(strings::ERR_TEXT, colorize)
-            )),
-            StatusStyle::Emoji => Some((
-                strings::OK_EMOJI.to_string(),
-                strings::ERR_EMOJI.to_string()
-            )),
-            StatusStyle::None => None
-        }
-    }
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy)]
+#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(ValueEnum, Clone, Copy)]
 pub enum WhenColors {
     Never,
     Always,
     Auto,
+}
+
+pub fn get_repr(style: Option<StatusStyle>) -> Option<StatusSet> {
+    style.and_then(|style| match style {
+        StatusStyle::Icons => Some( ICON_SET),
+        StatusStyle::Text  => Some( TEXT_SET),
+        StatusStyle::Emoji => Some(EMOJI_SET),
+        StatusStyle::None  => None
+    })
 }

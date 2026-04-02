@@ -1,41 +1,69 @@
-pub const DEFAULT_FORMAT: &str = "({line:<}: )({status:<} ){path}";
+pub const DEFAULT_FORMAT: &str = "({index:>}: )({status:-} ){path:<}( {description})";
 
 pub const AFTER_HELP: &str = r#"
 This program supports NO_COLOR (see https://nocolor.org)
 
-The <FORMAT> argument is a string that may contain
-    braces where variables are stored, and a formatting
-    for those variables is set after the : character.
+The <FORMAT> argument defines a custom output format using
+placeholders and simple formatting rules. It may contain
+variables written as {name}. Each variable is later expanded
+with its corresponding value, and may be not present.
+Variables can include optional alignment by using the
+syntax "{name:xy}", where "x" is the alignment specifier
+and "y" is the filler character.
+For example, "{status:>-}" aligns the value of the "status"
+variable to the right using the "-" character.
+Parentheses can be used for conditional sections. Any text
+inside is only included if the variable inside is not empty,
+otherwise the entire section is removed.
+Multiple variable expansions inside a single section are not
+allowed.
+Parentheses without a variable expansion inside are ignored.
 
-Valid variables are:
-    line           When the --enumerate flag is present,
+Variable names:
+    index          When the --enumerate flag is present,
                    it's the current line index (starting
                    from 1)
     path           The path text
     status         The status symbol of the path
     description    Current status of the path
 
-Valid formats are:
-    <{char}   Pad to left using {char}
-    >{char}   Pad to right using {char}
-    -{char}   Center text surrounding with {char}
-    0         Pad with zeros ({line} only)
+Alignment specifiers:
+    <    Align to the left
+    >    Align to the right
+    -    Center the text
 
-The default {char} for padding is space (\u{0020}).
-
-Escapes are allowed:  \{  \:  \r  \n  \t
+The default character for padding is space (\u{0020}).
 
 Example:
     # Display paths by padding numbers to the
-    # left and centering the path.
-    --format="{line :>}{ path :-}{description}"
+    # right and centering the path.
+    pathcheck -e --format="({line:>} - ){path:>} - {description}"
+
+Note: header labels are affected by the format specified by the
+      --format flag.
 "#;
 
-pub const  OK_ICON: &str = "\u{f058}";
-pub const ERR_ICON: &str = "\u{f530}";
+#[derive(Clone)]
+pub struct StatusSet {
+    pub ok: &'static str,
+    pub error: &'static str,
+    pub warning: &'static str,
+}
 
-pub const  OK_EMOJI: &str = "\u{2705}";
-pub const ERR_EMOJI: &str = "\u{274c}";
+macro_rules! define_sets {
+    ($($name:ident = { $ok:literal, $error:literal, $warning:literal })*) => {
+        $(
+            pub const $name: StatusSet = StatusSet {
+                ok: $ok,
+                error: $error,
+                warning: $warning
+            };
+        )*
+    };
+}
 
-pub const  OK_TEXT: &str = "OK";
-pub const ERR_TEXT: &str = "ERR";
+define_sets! {
+     ICON_SET = { "\u{f058}", "\u{f530}", "\u{f071}" }
+    EMOJI_SET = { "\u{2705}", "\u{274c}", "\u{26a0}" }
+     TEXT_SET = { "OK ", "ERR", "(!)" }
+}
