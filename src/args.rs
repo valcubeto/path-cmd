@@ -35,7 +35,7 @@ pub struct ProgramFlags {
 
     /// Self-explanatory
     #[arg(short = 'd', long)]
-    pub show_description: bool,
+    pub descriptions: bool,
 
     /// Display a label above each column
     #[arg(short = 'H', long)]

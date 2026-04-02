@@ -135,7 +135,7 @@ fn main() {
         });
 
         lines.push(Variables {
-            description: args.show_description.then_some(description),
+            description: args.descriptions.then_some(description),
             line,
             path: path_display,
             status
@@ -153,7 +153,7 @@ fn main() {
                  && !args.no_status)
                     .then_some(status_label),
             description:
-                args.show_description
+                args.descriptions
                     .then_some(description_label),
         });
     }

@@ -36,13 +36,19 @@ OK  /usr/local/games
 ERR /snap/bin
 ```
 
-The `-s` flag let's you change the status text style between plain text, nerd font icons, emojis, or none (equivalent to `-S`).
+The `--status-style` flag let's you change the status text style between plain text (default), nerd font icons, emojis, or none.
+
+The `--no-status` flag deactivates status calculations.
+
+You can specify `--header`, `--footer`, `--descriptions`.
+
+Display the line index with `--enumerate`.
 
 Use the `--color` flag to change color behavior.
 
 Use the `--format` flag to specify a different output format.
 
-**Run `path --help` for more information**.
+**Run `pathcheck --help` for more information**.
 
 ### To simply display your paths:
 ```sh
@@ -63,4 +69,4 @@ Exit code 0 means no errors.
 - Added formatting with the `--format` flag.
 
 # TODO
-- Add path description text
+- Add man docs
